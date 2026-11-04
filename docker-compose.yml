@@ -12,10 +12,13 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      # -h 127.0.0.1 forces a TCP check, so "healthy" means the real networked server is
+      # accepting connections (not the socket-only server used during first-run init).
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 30
+      start_period: 30s
 
   app:
     build: .
@@ -23,6 +26,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    # If the app still loses the first-boot race with MySQL, restart until it connects.
+    restart: on-failure
     environment:
       # The app reaches MySQL by the service name "mysql" on the compose network.
       DB_URL: "jdbc:mysql://mysql:3306/gameflix_auth?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
