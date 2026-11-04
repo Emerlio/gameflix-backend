@@ -178,3 +178,22 @@ src/test/java/com/gameflix/auth/    AuthEndpointsTest, AuthServiceApplicationTes
 src/test/resources/application.properties   (H2 test profile)
 schema.sql
 ```
+
+## Continuous Integration (GitHub Actions)
+
+`.github/workflows/ci.yml` runs on every push and pull request to `main`:
+
+1. Checks out the repository
+2. Sets up **JDK 21** (Temurin) — this project targets Java 21, not 17
+3. `mvn clean package` — compiles and runs the tests (against in-memory H2)
+4. `docker build -t gameflix-backend .` — builds the container image from the `Dockerfile`
+
+### Run the container locally
+```bash
+docker build -t gameflix-backend .
+docker run -p 8080:8080 \
+  -e DB_URL="jdbc:mysql://host.docker.internal:3306/gameflix_auth" \
+  -e DB_USERNAME=gameflix_app -e DB_PASSWORD=*** \
+  -e JWT_SECRET=*** \
+  gameflix-backend
+```

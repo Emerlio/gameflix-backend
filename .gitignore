@@ -43,3 +43,7 @@ shot_*.html
 evidence_*.txt
 build*.log
 run*.log
+
+# Module 4 deliverable artifacts (not part of the app source)
+*.docx
+build_evidence_doc.js
