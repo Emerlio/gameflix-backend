@@ -5,3 +5,4 @@ target/
 *.md
 *.docx
 HELP.md
+src/main/resources/application-local.properties

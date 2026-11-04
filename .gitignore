@@ -47,3 +47,6 @@ run*.log
 # Module 4 deliverable artifacts (not part of the app source)
 *.docx
 build_evidence_doc.js
+
+# Docker local env (real secrets)
+.env
