@@ -42,21 +42,11 @@ jobs:
           upload-artifact: true
           artifact-name: gameflix-backend-sbom
 
+      - name: Install Trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+
       - name: Vulnerability report (Trivy - HIGH & CRITICAL, informational)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: gameflix-backend:latest
-          scan-type: image
-          severity: HIGH,CRITICAL
-          format: table
-          exit-code: '0'      # lists findings in the log; never fails here
+        run: trivy image --severity HIGH,CRITICAL --exit-code 0 --no-progress gameflix-backend:latest
 
       - name: Security gate (Trivy - FAIL the build on any CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: gameflix-backend:latest
-          scan-type: image
-          severity: CRITICAL
-          ignore-unfixed: false
-          format: table
-          exit-code: '1'      # <-- any CRITICAL finding stops the build here
+        run: trivy image --severity CRITICAL --exit-code 1 --no-progress gameflix-backend:latest

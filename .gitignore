@@ -50,3 +50,4 @@ build_evidence_doc.js
 
 # Docker local env (real secrets)
 .env
+docker-compose.override.yml
