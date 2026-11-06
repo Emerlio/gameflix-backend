@@ -25,4 +25,38 @@ jobs:
         run: mvn -B clean package
 
       - name: Build Docker image
-        run: docker build -t gameflix-backend .
+        run: docker build -t gameflix-backend:latest .
+
+      # ---------------------------------------------------------------------
+      # Supply-chain gate. These run AFTER the image is built (you can only
+      # inventory and scan what actually ships) and BEFORE any push/deploy,
+      # so a CRITICAL-flagged image never leaves the pipeline.
+      # ---------------------------------------------------------------------
+
+      - name: Generate SBOM (Syft, CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          image: gameflix-backend:latest
+          format: cyclonedx-json
+          output-file: gameflix-backend.sbom.cdx.json
+          upload-artifact: true
+          artifact-name: gameflix-backend-sbom
+
+      - name: Vulnerability report (Trivy - HIGH & CRITICAL, informational)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: gameflix-backend:latest
+          scan-type: image
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: '0'      # lists findings in the log; never fails here
+
+      - name: Security gate (Trivy - FAIL the build on any CRITICAL)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: gameflix-backend:latest
+          scan-type: image
+          severity: CRITICAL
+          ignore-unfixed: false
+          format: table
+          exit-code: '1'      # <-- any CRITICAL finding stops the build here
